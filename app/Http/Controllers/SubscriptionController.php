@@ -1,50 +1,24 @@
 <?php
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Interfaces\StudentInterface;
+use App\Http\Interfaces\SubscriptionInterface;
 
-class StudentController extends Controller
+class SubscriptionController extends Controller
 {
-    protected $student_interface;
+    protected $subscription_interface;
 
-    public function __construct(StudentInterface $studentInterface)
+    public function __construct(SubscriptionInterface $subscriptionInterface)
     {
-        $this->student_interface = $studentInterface;
+        $this->subscription_interface = $subscriptionInterface;
     }
 
-    public function index()
+    public function limitCount()
     {
-        return $this->student_interface->allStudents();
+        return $this->subscription_interface->limitSubscription();
     }
 
-    public function create(Request $request)
+    public function closedCount()
     {
-        return $this->student_interface->addStudent($request);
-    }
-
-    public function show(Request $request)
-    {
-        return $this->student_interface->specificStudent($request);
-    }
-
-    public function update(Request $request)
-    {
-        return $this->student_interface->updateStudent($request);
-    }
-
-    public function updateGroup(Request $request)
-    {
-        return $this->student_interface->updateStudentGroup($request);
-    }
-
-    public function delete(Request $request)
-    {
-        return $this->student_interface->deleteStudent($request);
-    }
-
-    public function deleteGroup(Request $request)
-    {
-        return $this->student_interface->deleteStudentGroup($request);
+        return $this->subscription_interface->closedSubscription();
     }
 }

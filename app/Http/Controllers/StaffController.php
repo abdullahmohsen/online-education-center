@@ -23,6 +23,11 @@ class StaffController extends Controller
         return $this->staff_interface->addStaff($request);
     }
 
+    public function show(Request $request)
+    {
+        return $this->staff_interface->specificStaff($request);
+    }
+
     public function update(Request $request)
     {
         return $this->staff_interface->updateStaff($request);

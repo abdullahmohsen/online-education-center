@@ -3,16 +3,21 @@
 namespace App\Http\Repositories;
 
 use App\Http\Interfaces\StaffInterface;
-use App\Http\Traits\ApiResponseTrait;
-use App\Models\Role;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+
+use App\Http\Traits\{
+    ApiResponseTrait, UserRoleTrait
+};
+use App\Models\{
+    Role, User
+};
+use Illuminate\Support\Facades\{
+    Hash, Validator
+};
 
 class StaffRepository implements StaffInterface
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, UserRoleTrait;
 
     private $user_model;
     private $role_model;
@@ -30,10 +35,13 @@ class StaffRepository implements StaffInterface
 
         // $staff_data = $this->role_model::where('is_staff', 1)->with('userRole')->get();
 
-        $staff_data = $this->user_model::whereHas('roleName', function($query){
-            return $query->where('is_staff', 1);
-        })->with('roleName')->get();
-        return $this->ApiResponse(200, 'Done', null, $staff_data);
+        // $staff_data = $this->user_model::whereHas('roleName', function($query){
+        //     return $query->where('is_staff', 1);
+        // })->with('roleName')->get();
+
+        $allStaff = $this->user_role('is_staff', 1)->with('roleName')->get();
+
+        return $this->ApiResponse(200, 'Done', null, $allStaff);
     }
 
     public function addStaff($request)
@@ -43,7 +51,7 @@ class StaffRepository implements StaffInterface
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'phone' => 'required',
-            'role_id' => 'required|exists:roles,id'
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         if($validation->fails()){
@@ -57,8 +65,26 @@ class StaffRepository implements StaffInterface
             'phone' => $request->phone,
             'role_id' => $request->role_id,
         ]);
-
         return $this->ApiResponse(200,'Staff Was Created');
+    }
+
+    public function specificStaff($request)
+    {
+        $validation = Validator::make($request->all(),[
+            'staff_id' => 'required|exists:users,id'
+        ]);
+
+        if($validation->fails()){
+            return $this->ApiResponse(422, 'Validation Error', $validation->errors());
+        }
+
+        $staff = $this->user_role('is_staff', 1)->find($request->staff_id);
+
+        if($staff){
+            $staff->first();
+            return $this->ApiResponse(200, 'Done', null, $staff);
+        }
+        return $this->ApiResponse(422, 'This User is not staff');
     }
 
     public function updateStaff($request)
@@ -66,11 +92,8 @@ class StaffRepository implements StaffInterface
         $validation = Validator::make($request->all(),[
             'staff_id' => 'required|exists:users,id',
             'name' => 'required|min:3',
-            'email' => [
-              'email',
-              'required',
-              Rule::unique('users')->ignore($request->id)
-            ],
+            'email' => 'required|email|unique:users,email,'.$request->staff_id,
+            'password' => 'required|min:8',
             'phone' => 'required',
             'role_id' => 'required|exists:roles,id'
         ]);
@@ -79,17 +102,19 @@ class StaffRepository implements StaffInterface
             return $this->ApiResponse(422, 'Validation Error', $validation->errors());
         }
 
-        $user = $this->user_model::find($request->id);
-        if (!$user) {
-            return $this->ApiResponse(404,'Not Found User');
+        $staff = $this->user_role('is_staff', 1)->find($request->staff_id);
+
+        if ($staff) {
+            $staff->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'phone' => $request->phone,
+                'role_id' => $request->role_id,
+            ]);
+            return $this->ApiResponse(200,'Staff was updated');
         }
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role_id' => $request->role_id,
-        ]);
-        return $this->ApiResponse(200,'Staff Was Updated');
+        return $this->ApiResponse(422, 'This User is not staff');
     }
 
     public function deleteStaff($request)
@@ -102,13 +127,11 @@ class StaffRepository implements StaffInterface
             return $this->ApiResponse(422, 'Validation Error', $validation->errors());
         }
 
-        $staff = $this->user_model::whereHas('roleName', function($query){
-            return $query->where('is_staff', 1);
-        })->find($request->id);
+        $staff = $this->user_role('is_staff', 1)->find($request->staff_id);
 
         if($staff){
             $staff->delete();
-            return $this->ApiResponse(200, 'Staff Was deleted');
+            return $this->ApiResponse(200, 'Staff was deleted');
         }
         return $this->ApiResponse(422, 'This User is not staff');
     }

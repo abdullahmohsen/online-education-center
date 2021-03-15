@@ -1,45 +1,40 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Http\Interfaces\GroupInterface;
+use App\Http\Interfaces\GroupSessionInterface;
 use Illuminate\Http\Request;
 
-class GroupController extends Controller
+class GroupSessionController extends Controller
 {
-    protected $group_interface;
+    protected $groupSession_interface;
 
-    public function __construct(GroupInterface $groupInterface)
+    public function __construct(GroupSessionInterface $groupSessionInterface)
     {
-        $this->group_interface = $groupInterface;
-        $this->middleware('jwt.verify',[
-            'except' => [
-                'index', 'show'
-            ]
-        ]);
+        $this->groupSession_interface = $groupSessionInterface;
     }
 
     public function index()
     {
-        return $this->group_interface->allGroups();
+        return $this->groupSession_interface->allGroupSessions();
     }
 
     public function create(Request $request)
     {
-        return $this->group_interface->addGroup($request);
+        return $this->groupSession_interface->addGroupSession($request);
     }
 
     public function show(Request $request)
     {
-        return $this->group_interface->specificGroup($request);
+        return $this->groupSession_interface->specificGroupSession($request);
     }
 
     public function update(Request $request)
     {
-        return $this->group_interface->updateGroup($request);
+        return $this->groupSession_interface->updateGroupSession($request);
     }
 
     public function delete(Request $request)
     {
-        return $this->group_interface->deleteGroup($request);
+        return $this->groupSession_interface->deleteGroupSession($request);
     }
 }

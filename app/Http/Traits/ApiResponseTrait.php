@@ -5,16 +5,17 @@ use App\Http\Traits\ErrorsTrait;
 
 trait ApiResponseTrait{
 
-    use ErrorsTrait;
-
-    /**
+    /** Build:
      * [
-     *  data =>
-     *  status =>
-     *  code =>
+     *  Code => Base [200]
+     *  status =>  [200 - 201 - 2002 - 400 - 404 - 422]
+     *  message => "Write message here"
+     *  errors / data => if status is [200 - 201 - 202] that main success so return data,
+     *  but if status [400 - 404 - 422] that main some errors so return errors.
      * ]
      */
 
+    use ErrorsTrait;
 
     public function ApiResponse($code = 200, $message = null, $errors = null, $data = null){
 

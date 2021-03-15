@@ -2,121 +2,145 @@
 
 namespace App\Http\Repositories;
 
-use App\Http\Interfaces\GroupInterface;
-use App\Http\Traits\{ApiResponseTrait, UserRoleTrait, ValidationsTrait};
-use App\Models\{
-    Group, User
-};
-use Illuminate\Support\Facades\{
-    Validator
-};
+use App\Http\Traits\ApiResponseTrait;
+use App\Http\Interfaces\GroupSessionInterface;
+use App\Models\GroupSession;
+use App\Models\StudentGroup;
+use Illuminate\Support\Facades\Validator;
 
-class GroupRepository implements GroupInterface
+class GroupSessionRepository implements GroupSessionInterface
 {
-    use ApiResponseTrait, UserRoleTrait, ValidationsTrait;
+    use ApiResponseTrait;
 
-    private $group_model;
-    private $user_model;
+    private $groupSession_model;
+    private $studentGroup_model;
 
-    public function __construct(Group $group, User $user)
+    public function __construct(GroupSession $groupSession, StudentGroup $studentGroup)
     {
-        $this->group_model = $group;
-        $this->user_model = $user;
+        $this->groupSession_model = $groupSession;
+        $this->studentGroup_model = $studentGroup;
     }
 
-    public function allGroups()
+    public function allGroupSessions()
     {
-        $groups = $this->group_model::get();
+        $groupSessions = $this->groupSession_model::with('group')->get();
 
-        return $this->ApiResponse(200, 'Done', null, $groups);
+        return $this->ApiResponse(200, 'Done', null, $groupSessions);
     }
 
-    public function addGroup($request)
+    public function addGroupSession($request)
     {
-        $validation = $this->getValidationsGroup($request);
-        if($validation->fails()){
+        $validation = Validator::make($request->all(), [
+            'group_id' => 'required|exists:groups,id',
+            'name' => 'required',
+            'from' => 'required',
+            'to' => 'required',
+            'link' => 'required',
+        ]);
+
+        if ($validation->fails()) {
             return $this->ApiResponse(422, 'Validation Error', $validation->errors());
         }
 
-        $teacher = $this->user_role('is_teacher', 1)->find($request->teacher_id);
+        $this->groupSession_model::create([
+            'group_id' => $request->group_id,
+            'name' => $request->name,
+            'from' => $request->from,
+            'to' => $request->to,
+            'link' => $request->link,
+        ]);
 
-        if ($teacher) {
-            $this->group_model::create([
-                'name' => $request->name,
-                'body' => $request->body,
-                'image' => $request->image,
-                'teacher_id' => $request->teacher_id,
-                'created_by' => auth()->user()->id,
-            ]);
-            return $this->ApiResponse(200, 'Group was Created');
-        }
-        return $this->ApiResponse(422, 'This user is not a teacher');
+        $this->studentGroup_model::where([['count', '>', '0'], ['group_id', $request->group_id]])->decrement('count');
+
+//        $studentGroupsCount = $this->studentGroup_model::where('group_id', $request->group_id)->get();
+//        foreach ($studentGroupsCount as $studentGroupCount) {
+//            $studentGroupCount->update([
+//                'count' => $studentGroupCount->count - 1
+//            ]);
+//        }
+
+        return $this->ApiResponse(200, 'Group Session was Created');
     }
 
-    public function specificGroup($request)
+    public function specificGroupSession($request)
     {
         $validation = Validator::make($request->all(),[
-            'group_id' => 'required|exists:groups,id'
+            'groupSession_id' => 'required|exists:group_sessions,id'
         ]);
 
         if($validation->fails()){
             return $this->ApiResponse(422, 'Validation Error', $validation->errors());
         }
 
-        $group = $this->group_model::find($request->group_id);
+        $groupSession = $this->groupSession_model::find($request->groupSession_id)->with('group')->first();
 
-        if($group){
-            $group->first();
-            return $this->ApiResponse(200, 'Done', null, $group);
-        }
-        return $this->ApiResponse(422, 'This User is not staff');
+        if($groupSession)
+            return $this->ApiResponse(200, 'Done', null, $groupSession);
+        return $this->ApiResponse(422, 'This Group session is not found');
     }
 
-    public function updateGroup($request)
+    public function updateGroupSession($request)
     {
-        $validation = $this->getValidationsGroup($request);
-
-        if($validation->fails()){
-            return $this->ApiResponse(422, 'Validation Error', $validation->errors());
-        }
-
-        $teacher = $this->user_role('is_teacher', 1)->find($request->teacher_id);
-
-        if (!$teacher) {
-            return $this->ApiResponse(422, 'This user is not a teacher');
-        }
-
-        $group = $this->group_model::find($request->group_id);
-
-        if ($group) {
-            $group->update([
-                'name' => $request->name,
-                'body' => $request->body,
-                'image' => $request->image,
-                'teacher_id' => $request->teacher_id,
-                'created_by' => auth()->user()->id,
-            ]);
-            return $this->ApiResponse(200,'Group was updated');
-        }
-        return $this->ApiResponse(422, 'This Group is not found');
+//        $validation = Validator::make($request->all(),[
+//            'groupSession_id' => 'required|exists:group_sessions,id',
+//            'group_id' => 'required|exists:groups,id',
+//            'name' => 'required',
+//            'from' => 'required',
+//            'to' => 'required',
+//            'link' => 'required',
+//        ]);
+//
+//        if($validation->fails()){
+//            return $this->ApiResponse(422, 'Validation Error', $validation->errors());
+//        }
+//
+//        $oldGroupId = $this->groupSession_model::where('id', $request->groupSession_id)->value('group_id');
+//        $requestGroupId = $request->group_id;
+//
+//        if ($oldGroupId == $requestGroupId) {
+//            dd("equal");
+//        }
+//        dd("not equal");
+//
+//
+//        $studentGroupsCount = $this->studentGroup_model::where('group_id', $request->group_id)->get();
+//        foreach ($studentGroupsCount as $studentGroupCount) {
+//            $studentGroupCount->update([
+//                'count' => $studentGroupCount->count - 1
+//            ]);
+//        }
+//
+//        $groupSession = $this->groupSession_model::find($request->groupSession_id);
+//
+//        if ($groupSession) {
+//            $groupSession->update([
+//                'group_id' => $request->group_id,
+//                'name' => $request->name,
+//                'from' => $request->from,
+//                'to' => $request->to,
+//                'link' => $request->link,
+//            ]);
+//            return $this->ApiResponse(200,'Group session was updated');
+//        }
+//        return $this->ApiResponse(422, 'This Group session is not found');
     }
 
-    public function deleteGroup($request)
+    public function deleteGroupSession($request)
     {
         $validation = Validator::make($request->all(),[
-            'group_id' => 'required|exists:groups,id'
+            'groupSession_id' => 'required|exists:group_sessions,id'
         ]);
 
         if($validation->fails()){
             return $this->ApiResponse(422, 'Validation Error', $validation->errors());
         }
 
-        $group = $this->group_model::find($request->group_id);
+        $groupSession = $this->groupSession_model::find($request->groupSession_id);
 
-        if($group){
-            $group->delete();
-            return $this->ApiResponse(200, 'Group was deleted');
+        if($groupSession){
+            $groupSession->delete();
+            return $this->ApiResponse(200, 'Group session was deleted');
         }
-        return $this->ApiResponse(422, 'This Group is not found');
+        return $this->ApiResponse(422, 'This Group session is not found');
     }
 }

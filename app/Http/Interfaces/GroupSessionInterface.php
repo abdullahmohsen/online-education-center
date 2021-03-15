@@ -1,10 +1,10 @@
 <?php
 namespace App\Http\Interfaces;
 
-interface GroupInterface{
-    public function allGroups();
-    public function addGroup($request);
-    public function specificGroup($request);
-    public function updateGroup($request);
-    public function deleteGroup($request);
+interface GroupSessionInterface{
+    public function allGroupSessions();
+    public function addGroupSession($request);
+    public function specificGroupSession($request);
+    public function updateGroupSession($request);
+    public function deleteGroupSession($request);
 }

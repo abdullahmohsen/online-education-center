@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Interfaces\AuthInterface;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -20,5 +21,10 @@ class AuthController extends Controller
     public function logout()
     {
         return $this->auth_interface->HandleLogout();
+    }
+
+    public function update(Request $request)
+    {
+        return $this->auth_interface->updatePassword($request);
     }
 }

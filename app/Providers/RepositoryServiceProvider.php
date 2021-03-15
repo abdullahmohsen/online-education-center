@@ -15,7 +15,14 @@ class RepositoryServiceProvider extends ServiceProvider
     {
        $models = array(
            'Auth',
-           'Staff'
+           'Staff',
+           'Teacher',
+           'Student',
+           'Group',
+           'GroupSession',
+           'Subscription',
+           'EndUser',
+           'Complaint'
        );
 
        foreach ($models as $model) {

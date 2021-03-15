@@ -9,8 +9,8 @@ class Role extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'is_staff'];
-    protected $hidden = ['created_at', 'updated_at', 'is_staff'];
+    protected $fillable = ['name', 'is_staff', 'is_teacher'];
+    protected $hidden = ['created_at', 'updated_at', 'is_staff', 'is_teacher'];
 
     public function userRole()
     {

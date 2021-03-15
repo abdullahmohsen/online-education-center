@@ -1,10 +1,8 @@
 <?php
 namespace App\Http\Interfaces;
 
-interface StudentInterface{
-    public function allStudents();
-    public function addStudent($request);
-    public function specificStudent($request);
-    public function updateStudent($request);
-    public function deleteStudent($request);
+interface ComplaintInterface{
+    public function allComplaints();
+    public function getComplaint($request);
+    public function deleteComplaint($request);
 }

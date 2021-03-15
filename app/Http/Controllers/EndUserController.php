@@ -1,40 +1,19 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Http\Interfaces\StaffInterface;
-use Illuminate\Http\Request;
+use App\Http\Interfaces\EndUserInterface;
 
-class StaffController extends Controller
+class EndUserController extends Controller
 {
-    protected $staff_interface;
+    protected $endUser_interface;
 
-    public function __construct(StaffInterface $staffInterface)
+    public function __construct(EndUserInterface $endUserInterface)
     {
-        $this->staff_interface = $staffInterface;
+        $this->endUser_interface = $endUserInterface;
     }
 
     public function index()
     {
-        return $this->staff_interface->allStaff();
-    }
-
-    public function create(Request $request)
-    {
-        return $this->staff_interface->addStaff($request);
-    }
-
-    public function show(Request $request)
-    {
-        return $this->staff_interface->specificStaff($request);
-    }
-
-    public function update(Request $request)
-    {
-        return $this->staff_interface->updateStaff($request);
-    }
-
-    public function delete(Request $request)
-    {
-        return $this->staff_interface->deleteStaff($request);
+        return $this->endUser_interface->userGroups();
     }
 }

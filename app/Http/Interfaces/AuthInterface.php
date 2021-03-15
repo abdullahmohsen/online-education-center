@@ -5,4 +5,5 @@ interface AuthInterface{
     public function HandleLogin();
     public function HandleLogout();
     public function respondWithToken($token);
+    public function updatePassword($request);
 }
